@@ -1,4 +1,6 @@
 # Resolve react_native_pods.rb with node to allow for hoisting
+$RNMapboxMapsImpl = 'mapbox'
+
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
     "react-native/scripts/react_native_pods.rb",
@@ -25,16 +27,19 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+pre_install do |installer|
+  $RNMapboxMaps.pre_install(installer)
+end
+
 target 'mapboxKeando' do
   config = use_native_modules!
-
   # Flags change depending on the env values.
   flags = get_default_flags()
 
   use_react_native!(
     :path => config[:reactNativePath],
     # Hermes is now enabled by default. Disable by setting this flag to false.
-    :hermes_enabled => flags[:hermes_enabled],
+    ::hermes_enabled => false,
     :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
@@ -57,6 +62,7 @@ target 'mapboxKeando' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+    $RNMapboxMaps.post_install(installer)
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
   end
 end
